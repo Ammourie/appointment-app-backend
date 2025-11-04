@@ -1,6 +1,6 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const path = require("path"); // Add this import
+const path = require("path");
 
 const options = {
   definition: {
@@ -12,8 +12,7 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_URL || "http://localhost:3000",
-        description: process.env.NODE_ENV === "production" ? "Production" : "Development",
+        url: "/",
       },
     ],
     components: {
@@ -27,19 +26,17 @@ const options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  // Fix: Use absolute path
   apis: [path.join(__dirname, "./routes/*.js")],
 };
 
 const swaggerSpec = swaggerJsDoc(options);
 
 function setupSwagger(app) {
-  // Remove the ||true for production
   if (process.env.NODE_ENV !== "production" || true) {
-    // Serve Swagger docs at /api-docs
-    app.use(
+    // IMPORTANT: Setup Swagger BEFORE other routes
+    app.use("/api-docs", swaggerUi.serve);
+    app.get(
       "/api-docs",
-      swaggerUi.serve,
       swaggerUi.setup(swaggerSpec, {
         persistAuthorization: true,
         swaggerOptions: {
@@ -53,8 +50,8 @@ function setupSwagger(app) {
         },
       })
     );
-    
-    console.log("Swagger UI available at /api-docs");
+
+    console.log("✅ Swagger UI available at /api-docs");
   }
 }
 
