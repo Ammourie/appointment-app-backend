@@ -2,19 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.js",
+      "src": "bin/www",
       "use": "@vercel/node"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/api-docs/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "bin/www"
     }
   ]
 }
