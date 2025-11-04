@@ -12,8 +12,23 @@
       "dest": "/app.js"
     },
     {
+      "src": "/api-docs",
+      "dest": "/app.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/app.js"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api-docs/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
     }
   ]
 }

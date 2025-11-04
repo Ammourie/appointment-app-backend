@@ -34,24 +34,29 @@ const options = {
 const swaggerSpec = swaggerJsDoc(options);
 
 function setupSwagger(app) {
-  // Serve raw JSON spec (this always works)
+  // Serve the swagger spec as JSON
   app.get("/api-docs.json", (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
 
-  // Swagger UI with custom options for Vercel
+  // Setup Swagger UI with explicit asset handling
   const swaggerUiOptions = {
+    explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "Appointment App API Docs",
+    customSiteTitle: "Appointment App API",
     swaggerOptions: {
       persistAuthorization: true,
-      displayRequestDuration: true,
+      url: "/api-docs.json",
     },
   };
 
-  app.use("/api-docs", swaggerUi.serve);
-  app.get("/api-docs", swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+  // IMPORTANT: Use this pattern for Vercel
+  app.use(
+    "/api-docs",
+    swaggerUi.serveFiles(swaggerSpec, swaggerUiOptions),
+    swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+  );
 
   console.log("Swagger UI available at /api-docs");
   console.log("Swagger JSON available at /api-docs.json");
