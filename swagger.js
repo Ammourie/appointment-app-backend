@@ -54,7 +54,7 @@ function setupSwagger(app) {
         </style>
       </head>
       <body>
-        <div id="swagger-ui"></div>
+        <div id="swagger-ui"> </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-bundle.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-standalone-preset.min.js"></script>
         <script>
