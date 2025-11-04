@@ -1,5 +1,4 @@
 const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
 const path = require("path");
 
 const options = {
@@ -40,23 +39,43 @@ function setupSwagger(app) {
     res.send(swaggerSpec);
   });
 
-  // Setup Swagger UI with explicit asset handling
-  const swaggerUiOptions = {
-    explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "Appointment App API",
-    swaggerOptions: {
-      persistAuthorization: true,
-      url: "/api-docs.json",
-    },
-  };
-
-  // IMPORTANT: Use this pattern for Vercel
-  app.use(
-    "/api-docs",
-    swaggerUi.serveFiles(swaggerSpec, swaggerUiOptions),
-    swaggerUi.setup(swaggerSpec, swaggerUiOptions)
-  );
+  // Serve custom HTML that loads Swagger UI from CDN
+  app.get("/api-docs", (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Appointment App API</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui.min.css" />
+        <style>
+          body { margin: 0; padding: 0; }
+        </style>
+      </head>
+      <body>
+        <div id="swagger-ui"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-standalone-preset.min.js"></script>
+        <script>
+          window.onload = function() {
+            SwaggerUIBundle({
+              url: "/api-docs.json",
+              dom_id: '#swagger-ui',
+              deepLinking: true,
+              persistAuthorization: true,
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+              ],
+              layout: "StandaloneLayout"
+            });
+          };
+        </script>
+      </body>
+      </html>
+    `);
+  });
 
   console.log("Swagger UI available at /api-docs");
   console.log("Swagger JSON available at /api-docs.json");
