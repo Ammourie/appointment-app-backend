@@ -30,7 +30,7 @@ const options = {
 const swaggerSpec = swaggerJsDoc(options);
 
 function setupSwagger(app) {
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production"||true) {
     // Serve Swagger docs at /api-docs
     app.use(
       "/api-docs",

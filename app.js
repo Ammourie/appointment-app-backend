@@ -20,7 +20,7 @@ app.use(logger(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 const setupSwagger = require("./swagger");
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
+app.set("view engine", "pug");
 // Setup Swagger
 setupSwagger(app);
 app.use(logger("dev"));
