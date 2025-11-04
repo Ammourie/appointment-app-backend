@@ -1,6 +1,6 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const path = require("path"); // Add this import
+const path = require("path");
 
 const options = {
   definition: {
@@ -13,7 +13,8 @@ const options = {
     servers: [
       {
         url: process.env.API_URL || "http://localhost:3000",
-        description: process.env.NODE_ENV === "production" ? "Production" : "Development",
+        description:
+          process.env.NODE_ENV === "production" ? "Production" : "Development",
       },
     ],
     components: {
@@ -27,35 +28,33 @@ const options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  // Fix: Use absolute path
   apis: [path.join(__dirname, "./routes/*.js")],
 };
 
 const swaggerSpec = swaggerJsDoc(options);
 
 function setupSwagger(app) {
-  // Remove the ||true for production
-  if (process.env.NODE_ENV !== "production" || true) {
-    // Serve Swagger docs at /api-docs
-    app.use(
-      "/api-docs",
-      swaggerUi.serve,
-      swaggerUi.setup(swaggerSpec, {
-        persistAuthorization: true,
-        swaggerOptions: {
-          authAction: {
-            bearerAuth: {
-              name: "bearerAuth",
-              schema: { type: "apiKey", in: "header", name: "Authorization" },
-              value: "Bearer <token>",
-            },
-          },
-        },
-      })
-    );
-    
-    console.log("Swagger UI available at /api-docs");
-  }
+  // Serve raw JSON spec (this always works)
+  app.get("/api-docs.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  });
+
+  // Swagger UI with custom options for Vercel
+  const swaggerUiOptions = {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Appointment App API Docs",
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+    },
+  };
+
+  app.use("/api-docs", swaggerUi.serve);
+  app.get("/api-docs", swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+
+  console.log("Swagger UI available at /api-docs");
+  console.log("Swagger JSON available at /api-docs.json");
 }
 
 module.exports = setupSwagger;
