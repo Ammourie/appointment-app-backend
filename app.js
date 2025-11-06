@@ -1,3 +1,4 @@
+// app.js
 const createError = require("http-errors");
 const express = require("express");
 const path = require("path");
@@ -8,34 +9,34 @@ const cors = require("cors");
 require("dotenv").config();
 
 const indexRouter = require("./routes/index");
-
-
 const { errorResponse } = require("./utils/response");
 
 const app = express();
+
+// CORS - Must be first!
 app.use(
   cors({
-    origin: "*", // or replace '*' with your frontend URL for more security
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
+
 app.use(logger(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-const setupSwagger = require("./swagger");
-// view engine setup
-// app.set("views", path.join(__dirname, "views"));
-// app.set("view engine", "jade");
 // Setup Swagger
+const setupSwagger = require("./swagger");
 setupSwagger(app);
-app.use(logger("dev"));
+
+// Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
-
+// ✅ Mount routes under / prefix
+app.use("/api", indexRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

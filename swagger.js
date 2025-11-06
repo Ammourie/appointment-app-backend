@@ -1,6 +1,11 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const path = require("path");
 
+const serverUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://appointment-app-neon.vercel.app"
+    : "http://localhost:3000";
+
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -9,14 +14,7 @@ const options = {
       version: "1.0.0",
       description: "API documentation for your Node.js backend",
     },
-    servers: [
-      {
-        url: "https://appointment-app-neon.vercel.app", // ✅ Deployed base URL
-      },
-      {
-        url: "http://localhost:3000", // optional for local testing
-      },
-    ],
+    servers: [{ url: serverUrl }],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -31,16 +29,25 @@ const options = {
   apis: [path.join(__dirname, "./routes/*.js")],
 };
 
-const swaggerSpec = swaggerJsDoc(options);
+let swaggerSpec = swaggerJsDoc(options);
+
+// 🚀 Add `/api` prefix to all paths (visibly and safely)
+const prefixedPaths = {};
+for (const [pathKey, pathValue] of Object.entries(swaggerSpec.paths)) {
+  // avoid duplicating prefix if path already starts with /api
+  const newPath = pathKey.startsWith("/api") ? pathKey : `/api${pathKey}`;
+  prefixedPaths[newPath] = pathValue;
+}
+swaggerSpec.paths = prefixedPaths;
 
 function setupSwagger(app) {
-  // Serve the swagger spec as JSON
+  // Serve Swagger JSON
   app.get("/api-docs.json", (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
 
-  // Serve custom HTML that loads Swagger UI from CDN
+  // Serve Swagger UI
   app.get("/api-docs", (req, res) => {
     res.send(`
       <!DOCTYPE html>
@@ -50,12 +57,10 @@ function setupSwagger(app) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Appointment App API</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui.min.css" />
-        <style>
-          body { margin: 0; padding: 0; }
-        </style>
+        <style>body { margin: 0; padding: 0; }</style>
       </head>
       <body>
-        <div id="swagger-ui"> </div>
+        <div id="swagger-ui"></div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-bundle.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.5/swagger-ui-standalone-preset.min.js"></script>
         <script>
@@ -65,10 +70,7 @@ function setupSwagger(app) {
               dom_id: '#swagger-ui',
               deepLinking: true,
               persistAuthorization: true,
-              presets: [
-                SwaggerUIBundle.presets.apis,
-                SwaggerUIStandalonePreset
-              ],
+              presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
               layout: "StandaloneLayout"
             });
           };
@@ -78,8 +80,8 @@ function setupSwagger(app) {
     `);
   });
 
-  console.log("Swagger UI available at /api-docs");
-  console.log("Swagger JSON available at /api-docs.json");
+  console.log("✅ Swagger UI available at /api-docs");
+  console.log("✅ Swagger JSON available at /api-docs.json");
 }
 
 module.exports = setupSwagger;
