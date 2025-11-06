@@ -11,9 +11,10 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_URL ,
-        description:
-          process.env.NODE_ENV === "production" ? "Production" : "Development",
+        url: "https://appointment-app-neon.vercel.app", // ✅ Deployed base URL
+      },
+      {
+        url: "http://localhost:3000", // optional for local testing
       },
     ],
     components: {
