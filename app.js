@@ -14,7 +14,13 @@ const authRouter = require("./routes/auth");
 const { errorResponse } = require("./utils/response");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // or replace '*' with your frontend URL for more security
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(logger(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 const setupSwagger = require("./swagger");
