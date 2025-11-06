@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 const { successResponse, errorResponse } = require("../utils/response");
 const requireAuth = require("../middlewares/authentication");
-
+router.use(requireAuth);
 /**
  * @swagger
  * tags:
@@ -36,7 +36,7 @@ const requireAuth = require("../middlewares/authentication");
  *                     type: string
  *                     example: John Doe
  */
-router.get("/list", requireAuth, (req, res) => {
+router.get("/list", (req, res) => {
   successResponse(res, {
     message: `Hello ${req.user.name}, you are authorized!`,
   });
@@ -73,7 +73,7 @@ router.get("/list", requireAuth, (req, res) => {
  *       404:
  *         description: User not found
  */
-router.get("/details", requireAuth, (req, res) => {
+router.get("/details", (req, res) => {
   const id = parseInt(req.query.id);
   if (id === 1) successResponse(res, { id: 1, name: "John Doe" });
   else errorResponse(res, "User not found", "USER_NOT_FOUND");
