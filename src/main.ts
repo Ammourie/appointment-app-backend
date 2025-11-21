@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { UsersModule } from './messages/users.module';
+import { UsersModule } from './users/users.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ValidationPipe } from '@nestjs/common';
@@ -8,31 +8,33 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(UsersModule);
 
-  const config = new DocumentBuilder()
-    .setTitle('Appointments API')
-    .setDescription('API for managing appointments')
-    .setVersion('1.0')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  // Global validation pipe
+  app.useGlobalPipes(new ValidationPipe());
+
   // Register global interceptor
   app.useGlobalInterceptors(new TransformInterceptor());
 
   // Register global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Strip properties that don't have decorators
-      forbidNonWhitelisted: true, // Throw error if non-whitelisted properties exist
-      transform: true, // Automatically transform payloads to DTO instances
-      transformOptions: {
-        enableImplicitConversion: true, // Convert types automatically (e.g., "123" -> 123)
-      },
-    }),
-  );
+  // Swagger configuration
+  const config = new DocumentBuilder()
+    .setTitle('Appointments API')
+    .setDescription('API for managing appointments')
+    .setVersion('1.0') // Optional: add tags for grouping
+    .build();
 
-  await app.listen(process.env.PORT ?? 3000);
+  // Create the document (call the function, don't pass it)
+  const document = SwaggerModule.createDocument(app, config);
+
+  // Setup Swagger with the actual document
+  SwaggerModule.setup('api', app, document); // ✅ Passing the document object
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+
+  console.log(`🚀 Application is running on: http://localhost:${port}`);
+  console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
 }
+
 void bootstrap();
